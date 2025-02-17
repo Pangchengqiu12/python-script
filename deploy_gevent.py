@@ -10,7 +10,7 @@ from queue import Queue
 import queue
 import threading
 from datetime import datetime, timedelta
-import ffmpeg
+# import ffmpeg
 import imageio.v2 as imageio
 import psutil
 import subprocess as sp
@@ -66,7 +66,7 @@ checkpoint_file = '/filedata/AiModel/model/mmyolo/yolov8_s_video_direct_pretrain
 tensorrt_checkpoint_file = '/filedata/AiModel/model/yolov8_tensorrt_fp16/end2end.engine'
 tensorrt_config_file = 'mmyolo_for_deploy/configs/deploy/detection_tensorrt_static-1536x1536.py'
 yolov11_checkpoint_file = '/filedata/AiModel/model/ultralytics/yolov11/best.pt'
-device = 'cuda:0'
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 font = ImageFont.truetype(font_path, 45)
 
 model = init_detector(config_file, checkpoint_file, device=device) # inference_detector
@@ -107,27 +107,27 @@ last_heartbeat = datetime.now()  # Initialize heartbeat timestamp globally
 # 检查心跳超时的线程
 def check_heartbeats():
     global STOP_STREAM_TRIGGERED, last_heartbeat  # Use the global last_heartbeat
-    
+
     while True:
         now = datetime.now()
-        
+
         # If the time since the last heartbeat exceeds the threshold and stop_stream not triggered yet
         if now - last_heartbeat > timedelta(seconds=DEAD_THRESHOLD) and not STOP_STREAM_TRIGGERED:
             with app.app_context():
                 STOP_STREAM_TRIGGERED = True
                 stop_stream()  # Call stop_stream when the heartbeat is dead
-        
+
         # Check heartbeat every 1 second
         time.sleep(1)
 
 @app.route('/heartbeat', methods=['POST'])
 def heartbeat():
     global STOP_STREAM_TRIGGERED, last_heartbeat  # Use the global last_heartbeat
-    
+
     # Update the global heartbeat timestamp
     last_heartbeat = datetime.now()
     STOP_STREAM_TRIGGERED = False  # Reset the trigger flag on new heartbeat
-    
+
     return {'status': 'alive'}, 200, {'Content-Type': 'application/json'}
 
 
@@ -168,7 +168,7 @@ def check_and_clear_results_store():
     # 获取当前内存使用情况
     process = psutil.Process(os.getpid())
     memory_usage_mb = process.memory_info().rss / 1024 / 1024  # 转换为 MB
-    
+
     if memory_usage_mb > MAX_MEMORY_USAGE_MB:
         print(f"[MEMORY] Memory usage is {memory_usage_mb:.2f}MB, clearing non-processing results.")
         # 清理 'status' 不为 'processing' 的成员
@@ -234,7 +234,7 @@ def process_audio(job_id, file_path):
             if results_store[job_id].get('cancelled'):
                 results_store[job_id]['status'] = 'cancelled'
                 return
-            
+
             segment_file = f"/filedata/AiModel/tmp/segment_{i}.wav"
             segment.export(segment_file, format="wav")
 
@@ -282,7 +282,7 @@ def process_audio(job_id, file_path):
                 "end_time": len(segments) * segment_length,
                 "bird_classes": list(current_bird_classes)
             })
-        
+
         if current_noise_start is not None:
             noise_segments.append({
                 "start_time": current_noise_start,
@@ -322,7 +322,7 @@ def process_audio(job_id, file_path):
             'result': formatted_result,
             'excel_report': os.path.abspath(excel_file_path)
         }
-        
+
         try:
             response = requests.post(callback_url, json={
                 "jobId": job_id,
@@ -332,7 +332,7 @@ def process_audio(job_id, file_path):
             response.raise_for_status()
         except requests.RequestException as e:
             print(f"Callback failed: {e}")
-            
+
     except Exception as e:
         results_store[job_id] = {'status': 'failed', 'error': str(e)}
     finally:
@@ -374,7 +374,7 @@ BIRD IMAGE 100
 '''
 
 def process_image(job_id, file_path):
-    try:       
+    try:
         start_time = time.time()
         results = []
 
@@ -394,7 +394,7 @@ def process_image(job_id, file_path):
                                             show=False,
                                             verbose=False,
                                             )
-            
+
             bboxes = result[0].boxes.xyxy.cpu().numpy().tolist()
             labels = list(map(int, result[0].boxes.cls.cpu().numpy().tolist()))
             scores = result[0].boxes.conf.cpu().numpy().tolist()
@@ -409,9 +409,9 @@ def process_image(job_id, file_path):
                 'scores': scores
             }
             results.append(formatted_result)
-            
+
             chunk_end_time = time.time()
-            
+
             # 每处理一个chunk，更新状态和预计时间
             progress = (i+1) / len(file_path)
             results_store[job_id]['progress'] = f'{i+1}/{len(file_path)}'
@@ -428,7 +428,7 @@ def process_image(job_id, file_path):
             'origin_filepath': file_path if len(file_path) > 1 else file_path[0],
             'result': results if len(file_path) > 1 else results[0]
         }
-        
+
         # 添加回调请求
         try:
             response = requests.post(callback_url, json={
@@ -491,7 +491,7 @@ def process_video_meta(job_id, file_path):
             if results_store[job_id].get('cancelled'):
                 results_store[job_id]['status'] = 'cancelled'
                 return
-            
+
             ret, frame = video.read()
             if not ret:
                 break
@@ -503,7 +503,7 @@ def process_video_meta(job_id, file_path):
                                             show=False,
                                             verbose=False,
                                             )
-            
+
             bboxes = result[0].boxes.xyxy.cpu().numpy().tolist()
             labels = list(map(int, result[0].boxes.cls.cpu().numpy().tolist()))
             scores = result[0].boxes.conf.cpu().numpy().tolist()
@@ -519,9 +519,9 @@ def process_video_meta(job_id, file_path):
             }
 
             results.append(formatted_result)
-            
+
             chunk_end_time = time.time()
-                
+
             # 每处理一个chunk，更新状态和预计时间
             progress = (frame_count + 1) / total_frames
             results_store[job_id]['progress'] = f'{frame_count+1}/{total_frames}'
@@ -544,7 +544,7 @@ def process_video_meta(job_id, file_path):
             'end_time': datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S'),
             'results': results,
         }
-        
+
         # 添加回调请求
         try:
             response = requests.post(callback_url, json={
@@ -558,7 +558,7 @@ def process_video_meta(job_id, file_path):
 
     except Exception as e:
         results_store[job_id] = {'status': 'failed', 'error': str(e)}
-        
+
 # 视频元数据 API
 @app.route('/bird100_detection_video_meta', methods=['POST'])
 def bird100_detection_video_meta():
@@ -582,10 +582,10 @@ def process_video(job_id, file_path):
         current_time = datetime.now()
         year_month_path = current_time.strftime('%Y/%m')
         output_dir = os.path.join('/filedata/AiModel/image_reco_output', year_month_path)
-        
+
         # 确保目标目录存在
         os.makedirs(output_dir, exist_ok=True)
-        
+
         # 临时文件和输出文件路径
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4', dir='/filedata/AiModel/tmp')
         temp_video_file = os.path.join(output_dir, f"{job_id}_processed.mp4")
@@ -595,7 +595,7 @@ def process_video(job_id, file_path):
         video = cv2.VideoCapture(temp_file.name)
         fps = video.get(cv2.CAP_PROP_FPS)
         total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-        
+
         # 处理输出流
         out = imageio.get_writer(temp_video_file, format='ffmpeg', mode='I', fps=fps, codec='libx264', quality=5)
 
@@ -612,7 +612,7 @@ def process_video(job_id, file_path):
             ret, frame = video.read()
             if not ret:
                 break
-            
+
             result = yolov11_model.predict(source=frame,
                                            imgsz=1536,
                                             conf=0.3,
@@ -620,7 +620,7 @@ def process_video(job_id, file_path):
                                             show=False,
                                             verbose=False,
                                             )
-            
+
             bboxes = result[0].boxes.xyxy.cpu().numpy().tolist()
             labels = list(map(int, result[0].boxes.cls.cpu().numpy().tolist()))
             scores = result[0].boxes.conf.cpu().numpy().tolist()
@@ -644,7 +644,7 @@ def process_video(job_id, file_path):
                 if not is_show_class_99:
                     if label == 99:
                         continue
-                
+
                 bbox = list(map(int, bbox))
 
                 text = f'{cls_item} {score:.2f}'
@@ -656,14 +656,14 @@ def process_video(job_id, file_path):
 
             results.append(frame_results)
             out.append_data(frame)
-            
+
             chunk_end_time = time.time()
-                
+
             # 每处理一个chunk，更新状态和预计时间
             progress = (frame_count + 1) / total_frames
             results_store[job_id]['progress'] = f'{frame_count+1}/{total_frames}'
             results_store[job_id]['estimated_remaining_time'] = estimate_remaining_time(start_time, chunk_end_time, progress)
-            
+
             frame_count += 1
 
         end_time = time.time()
@@ -685,7 +685,7 @@ def process_video(job_id, file_path):
             'end_time': datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S'),
             'results': results
         }
-        
+
         # 添加回调请求
         try:
             response = requests.post(callback_url, json={
@@ -696,7 +696,7 @@ def process_video(job_id, file_path):
             response.raise_for_status()  # 确保请求成功
         except requests.RequestException as e:
             print(f"Callback failed: {e}")
-        
+
     except Exception as e:
         results_store[job_id] = {'status': 'failed', 'error': str(e)}
 
@@ -721,11 +721,11 @@ def bird100_detection_video():
     data = request.get_json()
     if not data or 'file_path' not in data:
         return jsonify({'error': 'No file path provided'}), 400, {'Content-Type': 'application/json'}
-    
+
     file_path = data['file_path']
     if not os.path.exists(file_path):
         return jsonify({'error': 'Invalid file path'}), 400, {'Content-Type': 'application/json'}
-    
+
     job_id = str(uuid.uuid4())  # 生成唯一的任务ID
     results_store[job_id] = {'status': 'queued', 'cancelled': False}  # 初始化任务状态为 queued
     video_queue.put((job_id, file_path, 'detection'))  # 将检测任务加入队列
@@ -815,7 +815,7 @@ class VideoStream:
         with self.lock:
             if not self.is_streaming:
                 return
-            
+
             self.is_streaming = False
 
             if self.read_thread and self.read_thread.is_alive():
@@ -899,7 +899,7 @@ class VideoStream:
                                             show=False,
                                             verbose=False,
                                             )
-            
+
             bboxes = result[0].boxes.xyxy.cpu().numpy().tolist()
             labels = list(map(int, result[0].boxes.cls.cpu().numpy().tolist()))
             scores = result[0].boxes.conf.cpu().numpy().tolist()
@@ -907,7 +907,7 @@ class VideoStream:
             palette = [bird100_palette[label] for label in labels]
 
             is_show_class_99 = sum([1 for label in labels if not label == 99]) == 0
-            
+
             frame = self._draw_bboxes(frame, bboxes, labels, scores, classes, palette, is_show_class_99)
 
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV_I420)
@@ -925,7 +925,7 @@ class VideoStream:
             if not is_show_class_99:
                 if label == 99:
                     continue
-            
+
             bbox = list(map(int, bbox))
 
             text = f'{cls_item} {score:.2f}'
@@ -966,11 +966,11 @@ def start_or_fetch_stream():
             'rtmp_address': rtmp_address,
             'all_stream_addresses': all_stream_addresses
         }), 200, {'Content-Type': 'application/json'}
-    
+
     # 如果推流数超过2，则释放最早的一个流
     if len(video_streams) >= 1:
         stop_stream()
-    
+
     # 启动新的视频流
     video_streams[stream_hash] = VideoStream(stream_url, stream_hash, model)
     rtmp_address = f'rtmp://180.101.130.45:1935/tmp/{stream_hash}'
@@ -987,12 +987,12 @@ def start_or_fetch_stream():
 def stop_stream():
     # 将所有要删除的stream hash存储起来
     streams_to_stop = list(video_streams.keys())
-    
+
     for stream_hash in streams_to_stop:
         stream = video_streams[stream_hash]
         stream.release()
         del video_streams[stream_hash]
-        
+
     return jsonify({'status': 'All streams stopped'}), 200, {'Content-Type': 'application/json'}
 
 if __name__ == '__main__':

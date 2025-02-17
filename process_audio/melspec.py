@@ -4,9 +4,9 @@ import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
 from pydub import AudioSegment
-import tempfile
+# import tempfile
 import os
-import shutil
+# import shutil
 import json
 import time
 result = {
@@ -110,31 +110,31 @@ def process_audio(file_path, save_path):
 
 if __name__ == "__main__":
     # 检查参数长度是不是等于3，sys.argv[0] 是 脚本本身的文件名（例如 melspec.py）
-    # if len(sys.argv) != 3:
-    #     print("ERROR: Invalid arguments")
-    # else:
-    #     audio_path = sys.argv[1] # 音频地址
-    #     output_path = sys.argv[2] # 输出文件夹地址
-    #     result["timestamp"] = time.time()
-    #     for i, path in enumerate(json.loads(audio_path)):
-    #         data = process_audio(path, output_path)
-    #         result["data"].append({"id":i,"audio_path":path,"data":data})
+    if len(sys.argv) != 3:
+        print("ERROR: Invalid arguments")
+    else:
+        audio_path = sys.argv[1] # 音频地址
+        output_path = sys.argv[2] # 输出文件夹地址
+        result["timestamp"] = time.time()
+        for i, path in enumerate(json.loads(audio_path)):
+            data = process_audio(path, output_path)
+            result["data"].append({"id":i,"audio_path":path,"data":data})
 
 
 
-    audio_path = [
-        'E:/mine/python/python-script/process_audio/104.wav',
-        'E:/assets/音频/$RJZ75H1.mp3',
-        'E:/assets/音频/$RJZ75H1(1).mp3',
-        'E:/assets/音频/$RJZ75H1(2).mp3',
-        'E:/assets/音频/$RJZ75H1(3).mp3',
-        'E:/assets/音频/$RJZ75H1(4).mp3'
-      ]
-    output_path = 'E:/demo'
-    result["timestamp"] = time.time()
-    for i, path in enumerate(audio_path):
-        data = process_audio(path, output_path)
-        result["data"].append({"id":i,"audio_path":path,"data":data})
+    # audio_path = [
+    #     'E:/mine/python/python-script/process_audio/104.wav',
+    #     'E:/assets/音频/$RJZ75H1.mp3',
+    #     'E:/assets/音频/$RJZ75H1(1).mp3',
+    #     'E:/assets/音频/$RJZ75H1(2).mp3',
+    #     'E:/assets/音频/$RJZ75H1(3).mp3',
+    #     'E:/assets/音频/$RJZ75H1(4).mp3'
+    #   ]
+    # output_path = 'E:/demo'
+    # result["timestamp"] = time.time()
+    # for i, path in enumerate(audio_path):
+    #     data = process_audio(path, output_path)
+    #     result["data"].append({"id":i,"audio_path":path,"data":data})
 
     # 将Python对象转换为JSON字符串
     result["timestamp"] = int((time.time() - result["timestamp"]) * 1000)
