@@ -54,18 +54,21 @@ def generate_mel_spectrogram(audio_path, output_path):
 # 处理音频
 def process_audio(file_path, save_path):
     temp_dir = os.path.join(tempfile.gettempdir(),'process_audio')  # 音频临时存储文件夹
-    file_name_without_extension = os.path.splitext(os.path.basename(file_path))[0]
+    # 如果临时文件夹不存在，则创建
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
 
+    file_name_without_extension = os.path.splitext(os.path.basename(file_path))[0] # 获取文件名（不包含扩展名）
+
+    # 如果保存路径不存在，则创建
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
     try:
         # 创建临时文件并将原始文件复制到临时文件
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file_path)[1], dir=temp_dir)
-        temp_file.close()  # 关闭文件句柄，但不删除文件
-        shutil.copyfile(file_path, temp_file.name)
+        # temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file_path)[1], dir=temp_dir)
+        # temp_file.close()  # 关闭文件句柄，但不删除文件
+        # shutil.copyfile(file_path, temp_file.name)
 
         # if file_path.endswith('.mp3'):
         #     audio = AudioSegment.from_mp3(temp_file.name)
@@ -74,7 +77,7 @@ def process_audio(file_path, save_path):
         #     os.remove(temp_file.name)
         #     temp_file.name = wav_path
 
-        audio = load_audio_segment(temp_file.name)
+        audio = load_audio_segment(file_path)
 
         audio_duration = len(audio) / 1000
 
@@ -84,7 +87,7 @@ def process_audio(file_path, save_path):
             segments.pop()
         process_data = []  # 最后的结果
         for i, segment in enumerate(segments):
-            segment_file = os.path.join(save_path,f"{file_name_without_extension}_{i}{os.path.splitext(temp_file.name)[1]}")
+            segment_file = os.path.join(save_path,f"{file_name_without_extension}_{i}{os.path.splitext(file_path)[1]}")
             spectrogram_path =os.path.join(save_path,f"{file_name_without_extension}_{i}.jpg")
             segment.export(segment_file, format="wav")
             status = generate_mel_spectrogram(segment_file, spectrogram_path)
@@ -102,7 +105,7 @@ def process_audio(file_path, save_path):
         print(json.dumps(result, ensure_ascii=False, indent=4))
         return result
     finally:
-        os.remove(temp_file.name)
+        # os.remove(temp_file.name)
         return process_data
 
 if __name__ == "__main__":
