@@ -53,10 +53,10 @@ def generate_mel_spectrogram(audio_path, output_path):
         return "FAIL"
 # 处理音频
 def process_audio(file_path, save_path):
-    temp_dir = os.path.join(tempfile.gettempdir(),'process_audio')  # 音频临时存储文件夹
-    # 如果临时文件夹不存在，则创建
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)
+    # temp_dir = os.path.join(tempfile.gettempdir(),'process_audio')  # 音频临时存储文件夹
+    # # 如果临时文件夹不存在，则创建
+    # if not os.path.exists(temp_dir):
+    #     os.makedirs(temp_dir)
 
     file_name_without_extension = os.path.splitext(os.path.basename(file_path))[0] # 获取文件名（不包含扩展名）
 
