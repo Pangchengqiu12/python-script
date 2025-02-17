@@ -15,6 +15,18 @@ result = {
     "message":"",
     'timestamp':0
 }
+def load_audio_segment(file_path):
+ # 获取文件的扩展名（不包含点）
+    ext = os.path.splitext(file_path)[1].lower()
+
+    if ext == '.mp3':
+        audio = AudioSegment.from_mp3(file_path)
+    elif ext == '.wav':
+        audio = AudioSegment.from_wav(file_path)
+    else:
+        raise ValueError("Unsupported file format. Only .mp3 and .wav are supported.")
+
+    return audio
 # 生成语谱图
 def generate_mel_spectrogram(audio_path, output_path):
     try:
@@ -55,28 +67,29 @@ def process_audio(file_path, save_path):
         temp_file.close()  # 关闭文件句柄，但不删除文件
         shutil.copyfile(file_path, temp_file.name)
 
-        if file_path.endswith('.mp3'):
-            audio = AudioSegment.from_mp3(temp_file.name)
-            wav_path = temp_file.name.replace('.mp3', '.wav')
-            audio.export(wav_path, format="wav")
-            os.remove(temp_file.name)
-            temp_file.name = wav_path
+        # if file_path.endswith('.mp3'):
+        #     audio = AudioSegment.from_mp3(temp_file.name)
+        #     wav_path = temp_file.name.replace('.mp3', '.wav')
+        #     audio.export(wav_path, format="wav")
+        #     os.remove(temp_file.name)
+        #     temp_file.name = wav_path
 
-        audio = AudioSegment.from_wav(temp_file.name)
+        audio = load_audio_segment(temp_file.name)
+
         audio_duration = len(audio) / 1000
 
         segment_length = 10
         segments = [audio[i:i + segment_length * 1000] for i in range(0, len(audio), segment_length * 1000)]
         if len(segments[-1]) < 1000 and len(segments) > 1:
             segments.pop()
-        result = []  # 最后的结果
+        process_data = []  # 最后的结果
         for i, segment in enumerate(segments):
-            segment_file = f"{save_path}/{file_name_without_extension}_{i}.wav"
-            spectrogram_path = f"{save_path}/{file_name_without_extension}_{i}.jpg"
+            segment_file = os.path.join(save_path,f"{file_name_without_extension}_{i}{os.path.splitext(temp_file.name)[1]}")
+            spectrogram_path =os.path.join(save_path,f"{file_name_without_extension}_{i}.jpg")
             segment.export(segment_file, format="wav")
             status = generate_mel_spectrogram(segment_file, spectrogram_path)
             if status == "SUCCESS":
-                result.append({
+                process_data.append({
                     "segment_file": segment_file,
                     "spectrogram_path": spectrogram_path
                 })
@@ -90,7 +103,7 @@ def process_audio(file_path, save_path):
         return result
     finally:
         os.remove(temp_file.name)
-        return result
+        return process_data
 
 if __name__ == "__main__":
     # 检查参数长度是不是等于3，sys.argv[0] 是 脚本本身的文件名（例如 melspec.py）
@@ -107,7 +120,7 @@ if __name__ == "__main__":
 
 
     audio_path = [
-        'E:/数据标注、识别、训练标准化平台/data/assets/104.wav',
+        'E:/mine/python/python-script/process_audio/104.wav',
         'E:/assets/音频/$RJZ75H1.mp3',
         'E:/assets/音频/$RJZ75H1(1).mp3',
         'E:/assets/音频/$RJZ75H1(2).mp3',
