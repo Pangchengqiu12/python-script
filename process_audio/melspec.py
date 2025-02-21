@@ -39,10 +39,11 @@ def generate_mel_spectrogram(audio_path, output_path):
 
         # 显示并保存语谱图
         plt.figure(figsize=(10, 4))
-        librosa.display.specshow(S_dB, sr=sample_rate, x_axis='time', y_axis='mel', fmax=8000)
-        plt.colorbar(format='%+2.0f dB')
-        plt.title('Mel-frequency spectrogram')
-        plt.tight_layout()
+        librosa.display.specshow(S_dB, sr=sample_rate,  fmax=8000)
+        # librosa.display.specshow(S_dB, sr=sample_rate, x_axis='time', y_axis='mel', fmax=8000)
+        # plt.colorbar(format='%+2.0f dB') # 右边的颜色条
+        # plt.title('Mel-frequency spectrogram') # 标题
+        plt.tight_layout(pad=0)
         plt.savefig(output_path)
         plt.close()
         return "SUCCESS"  # 返回状态
@@ -110,31 +111,31 @@ def process_audio(file_path, save_path):
 
 if __name__ == "__main__":
     # 检查参数长度是不是等于3，sys.argv[0] 是 脚本本身的文件名（例如 melspec.py）
-    if len(sys.argv) != 3:
-        print("ERROR: Invalid arguments")
-    else:
-        audio_path = sys.argv[1] # 音频地址
-        output_path = sys.argv[2] # 输出文件夹地址
-        result["timestamp"] = time.time()
-        for i, path in enumerate(json.loads(audio_path)):
-            data = process_audio(path, output_path)
-            result["data"].append({"id":i,"audio_path":path,"data":data})
+    # if len(sys.argv) != 3:
+    #     print("ERROR: Invalid arguments")
+    # else:
+    #     audio_path = sys.argv[1] # 音频地址
+    #     output_path = sys.argv[2] # 输出文件夹地址
+    #     result["timestamp"] = time.time()
+    #     for i, path in enumerate(json.loads(audio_path)):
+    #         data = process_audio(path, output_path)
+    #         result["data"].append({"id":i,"audio_path":path,"data":data})
 
 
 
-    # audio_path = [
-    #     'E:/mine/python/python-script/process_audio/104.wav',
-    #     'E:/assets/音频/$RJZ75H1.mp3',
-    #     'E:/assets/音频/$RJZ75H1(1).mp3',
-    #     'E:/assets/音频/$RJZ75H1(2).mp3',
-    #     'E:/assets/音频/$RJZ75H1(3).mp3',
-    #     'E:/assets/音频/$RJZ75H1(4).mp3'
-    #   ]
-    # output_path = 'E:/demo'
-    # result["timestamp"] = time.time()
-    # for i, path in enumerate(audio_path):
-    #     data = process_audio(path, output_path)
-    #     result["data"].append({"id":i,"audio_path":path,"data":data})
+    audio_path = [
+        'E:/mine/python/python-script/process_audio/104.wav',
+        'E:/assets/音频/$RJZ75H1.mp3',
+        'E:/assets/音频/$RJZ75H1(1).mp3',
+        'E:/assets/音频/$RJZ75H1(2).mp3',
+        'E:/assets/音频/$RJZ75H1(3).mp3',
+        'E:/assets/音频/$RJZ75H1(4).mp3'
+      ]
+    output_path = 'E:/demo'
+    result["timestamp"] = time.time()
+    for i, path in enumerate(audio_path):
+        data = process_audio(path, output_path)
+        result["data"].append({"id":i,"audio_path":path,"data":data})
 
     # 将Python对象转换为JSON字符串
     result["timestamp"] = int((time.time() - result["timestamp"]) * 1000)
