@@ -33,21 +33,17 @@ def generate_mel_spectrogram(audio_path, output_path):
         # 读取音频文件
         audio_data, sample_rate = librosa.load(audio_path, sr=None)
 
-        # # 计算 Mel 频率谱图
-        # S = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate, n_mels=128, fmax=8000)
-        # S_dB = librosa.power_to_db(S, ref=np.max)
+        # 计算 Mel 频率谱图
+        S = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate, n_mels=128, fmax=8000)
+        S_dB = librosa.power_to_db(S, ref=np.max)
 
-        # # 显示并保存语谱图
-        # plt.figure(figsize=(10, 4))
-        # librosa.display.specshow(S_dB, sr=sample_rate,  fmax=8000)
-        # # librosa.display.specshow(S_dB, sr=sample_rate, x_axis='time', y_axis='mel', fmax=8000)
-        # # plt.colorbar(format='%+2.0f dB') # 右边的颜色条
-        # # plt.title('Mel-frequency spectrogram') # 标题
-        # plt.tight_layout(pad=0)
-        librosa.display.specshow(librosa.amplitude_to_db(librosa.stft(audio_data), ref=np.max), y_axis=None, x_axis=None)
-        plt.axis('off')
-        plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-
+        # 显示并保存语谱图
+        plt.figure(figsize=(10, 4))
+        librosa.display.specshow(S_dB, sr=sample_rate,  fmax=8000)
+        # librosa.display.specshow(S_dB, sr=sample_rate, x_axis='time', y_axis='mel', fmax=8000)
+        # plt.colorbar(format='%+2.0f dB') # 右边的颜色条
+        # plt.title('Mel-frequency spectrogram') # 标题
+        plt.tight_layout(pad=0)
         plt.savefig(output_path)
         plt.close()
         return "SUCCESS"  # 返回状态
