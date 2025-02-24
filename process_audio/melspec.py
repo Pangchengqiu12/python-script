@@ -80,17 +80,18 @@ def process_audio(file_path, save_path):
 
         audio = load_audio_segment(file_path)
 
-        audio_duration = len(audio) / 1000
+        # audio_duration = len(audio) / 1000
 
         segment_length = 10
         segments = [audio[i:i + segment_length * 1000] for i in range(0, len(audio), segment_length * 1000)]
         if len(segments[-1]) < 1000 and len(segments) > 1:
             segments.pop()
-        process_data = []  # 最后的结果
+        process_data = []  # 储存最后的结果
         for i, segment in enumerate(segments):
             segment_file = os.path.join(save_path,f"{file_name_without_extension}_{i}{os.path.splitext(file_path)[1]}")
             spectrogram_path =os.path.join(save_path,f"{file_name_without_extension}_{i}.jpg")
-            segment.export(segment_file, format="wav")
+            # segment.export(segment_file, format="wav")
+            segment.export(segment_file)
             status = generate_mel_spectrogram(segment_file, spectrogram_path)
             if status == "SUCCESS":
                 process_data.append({
