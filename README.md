@@ -3,9 +3,9 @@
 | 目录                    | 说明                                                        |
 | ----------------------- | ----------------------------------------------------------- |
 | multiPolygon2muiltiLine | *将MultiPolygon的geojson文件转MultiLineString的geojson文件* |
-| process_audio           | 音频切割并转梅尔语谱图                                      |
-|                         |                                                             |
-|                         |                                                             |
+| melspec                 | 音频切割并转梅尔语谱图                                      |
+| dml                     | onnxruntime-direct                                          |
+| yolo                    | yolo-cuda                                                   |
 
 ```
 #安装依赖 
