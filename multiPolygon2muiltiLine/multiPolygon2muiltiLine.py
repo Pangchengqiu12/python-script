@@ -24,8 +24,8 @@ def convert_multipolygon_to_multilinestring(input_geojson, output_geojson):
 
 
 # 输入文件和输出文件路径
-input_file = 'E:\mine\python\zhoushan_wgs84.json'
-output_file = 'E:\mine\python\zhoushan_wgs84_multilinestring.json'
+input_file = 'E:/南山风景区/data/1749019443406/nanan.json'
+output_file = 'E:/南山风景区/jeecgboot-vue3/src/assets/largeScreen/map/nanan_multilinestring.json'
 
 convert_multipolygon_to_multilinestring(input_file, output_file)
 print(f"转换完成，结果已保存到 {output_file}")
