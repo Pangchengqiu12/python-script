@@ -7,7 +7,7 @@ from urllib3.util import Retry
 
 # ==================== 配置区域 ====================
 # Excel 文件路径（修改为你的实际路径）
-EXCEL_FILE = "E:\固原\data\固原鸣声采样点.xlsx"  # 如 r'D:\data\equipment.xlsx'
+EXCEL_FILE = "E:/固原/data/固原鸣声采样点 - 副本.xlsx"  # 如 r'D:\data\equipment.xlsx'
 
 # 接口信息
 URL = "http://202.100.121.22:9000/guyuanbio/obVoiceEquipment/add"
